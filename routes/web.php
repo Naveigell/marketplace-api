@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 Route::group(['prefix' => 'api/v1'], function(){
 
     // feed
@@ -31,7 +30,9 @@ Route::group(['prefix' => 'api/v1'], function(){
     Route::get('/profile/address', 'Api\Users\Profile\AddressController@getAddress');
     Route::get('/profile/address/{page}', 'Api\Users\Profile\AddressController@getAddressAtPage')->name('address-pagination');
     Route::put('/profile/address', 'Api\Users\Profile\AddressController@insertAddress');
+    Route::post('/profile/address', 'Api\Users\Profile\AddressController@updateAddress');
     Route::post('/profile/address/toggle/active', 'Api\Users\Profile\AddressController@toggle');
+    Route::delete('/profile/address', 'Api\Users\Profile\AddressController@deleteAddress');
     // profile -- username
     Route::post('/profile/name', 'Api\Users\Profile\ProfileController@updateName');
     Route::post('/profile/gender', 'Api\Users\Profile\ProfileController@updateGender');
@@ -39,6 +40,14 @@ Route::group(['prefix' => 'api/v1'], function(){
     // province, city
     Route::get('/province', 'Api\Buyer\Location\LocationController@getProvince');
     Route::get('/province/{id}/city', 'Api\Buyer\Location\LocationController@getCityByProvinceId');
+
+    // my shop -- all product
+    Route::get('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@getProduct');
+    Route::put('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@insertProduct');
+    Route::get('/dashboard/shop/product/{page}', 'Api\Seller\Shop\Product\ProductController@getProductAtPage')->name('shop-product-pagination');
+    // my shop -- archive product
+    Route::post('/dashboard/shop/product/archive', 'Api\Seller\Shop\Product\ProductController@archiveProduct');
+    Route::post('/dashboard/shop/product/unarchive', 'Api\Seller\Shop\Product\ProductController@unarchiveProduct');
 
     // cart
     Route::get('/cart', 'Api\Buyer\Cart\CartController@get');

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
 use App\Helper\JWT;
+use App\Auth\Guard\Instance\Toko;
 
 class TokenGuard implements Guard {
     /**
@@ -24,10 +25,16 @@ class TokenGuard implements Guard {
     protected $token;
 
     /**
+     * Attribute untuk menyimpan class toko
+     * @var [type]
+     */
+    private $toko;
+
+    /**
      * Attribute untuk menimpan token yang sudah di decode
      * @var object NULL
      */
-    private $tokenSession = NULL;
+    private $userInstance = NULL;
 
     protected $request;
     protected $provider;
@@ -63,7 +70,10 @@ class TokenGuard implements Guard {
      */
     public function decodeToken($name){
         $this->token = $this->request->bearerToken() == null ? $this->getCookie($name) : $this->request->bearerToken();
-        $this->tokenSession = $this->token == null ? null : [JWT::decode($this->token)];
+        $this->userInstance = $this->token == null ? null : [JWT::decode($this->token)];
+        $toko = optional($this->userInstance[0])->user->toko;
+        $this->toko = new Toko($toko);
+
         return $this;
     }
 
@@ -90,7 +100,7 @@ class TokenGuard implements Guard {
      * @return boolean
      */
     public function exists() {
-        return !is_null($this->tokenSession);
+        return !is_null($this->userInstance);
     }
 
     /**
@@ -108,10 +118,8 @@ class TokenGuard implements Guard {
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
     public function user() {
-        if (!is_null($this->user)) {
-           return $this->user;
-        } else if (!is_null($this->tokenSession)) {
-            return $this->tokenSession[0]->user;
+        if (!is_null($this->userInstance)) {
+            return $this->userInstance[0]->user;
         }
     }
 
@@ -121,13 +129,18 @@ class TokenGuard implements Guard {
      * @return string|null
     */
     public function id() {
-        if (!is_null($this->tokenSession)) {
-            return $this->tokenSession[0]->user->id;
+        if (!is_null($this->userInstance)) {
+            return $this->userInstance[0]->user->id;
         }
+    }
 
-        if ($user = $this->user()) {
-            return $this->user()->getAuthIdentifier();
-        }
+
+    /**
+     * Ambil ID Toko yang terautentikasi
+     * @return mixed object|null
+     */
+    public function toko() {
+        return $this->toko;
     }
 
     /**

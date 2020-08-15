@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Users\Profile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Buyer\Address\AddressRequestInsert;
+use App\Http\Requests\Buyer\Address\AddressRequestDelete;
+use App\Http\Requests\Buyer\Address\AddressRequestUpdate;
 use Illuminate\Http\Request;
 
 use App\Models\Buyer\Profile\AddressModel;
@@ -41,6 +43,8 @@ class AddressController extends Controller {
             $lokasi  = new \stdClass;
 
             // masukkan berdasarkan lokasi
+            $lokasi->id_kota        = $addr->id_kota;
+            $lokasi->id_provinsi    = $addr->kota_id_provinsi;
             $lokasi->nama_provinsi  = $addr->nama_provinsi;
             $lokasi->tipe           = $addr->tipe;
             $lokasi->nama_kota      = $addr->nama_kota;
@@ -124,6 +128,63 @@ class AddressController extends Controller {
             ];
 
             return json($response);
+        }
+
+        return error401();
+    }
+
+    /**
+     * Update alamat
+     * @param  AddressRequestUpdate $request
+     * @return json
+     */
+    public function updateAddress(AddressRequestUpdate $request) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+
+            $row = $this->addressModel->updateAddress(
+                $user->id(),
+                $request->id_alamat,
+                $request->id_kota,
+                $request->nama_alamat,
+                $request->nama_penerima,
+                $request->no_hp_penerima,
+                $request->alamat_lengkap
+            );
+
+            if ($row > 0) {
+                return json([
+                    "message"     => "Update alamat berhasil",
+                    "date"        => date("d-m-Y H:i")
+                ]);
+            }
+
+            return error500(null, null, "Terjadi masalah saat mengedit alamat");
+        }
+
+        return error401();
+    }
+
+    /**
+     * Fungsi untuk menghapus alamat
+     * @param  AddressRequestDelete $request
+     * @return json
+     */
+    public function deleteAddress(AddressRequestDelete $request) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+            $row  = $this->addressModel->deleteAddress($user->id(), $request->id_alamat);
+
+            try {
+                $response = [
+                    "message"     => $row <= 0 ? "Tidak ada alamat yang terhapus" : "Hapus alamat berhasil",
+                    "date"        => date("d-m-Y H:i")
+                ];
+
+                return json($response);
+            } catch (\Exception $e) {}
+
+            return error500(null, null, "Terjadi masalah saat menghapus alamat");
         }
 
         return error401();

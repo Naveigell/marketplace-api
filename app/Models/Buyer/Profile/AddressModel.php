@@ -23,7 +23,7 @@ class AddressModel extends Model {
     public function getAddress($id_user) {
         return AddressModel::select([
             'alamat.id_alamat', 'alamat.nama_penerima', 'alamat.nama_alamat', 'alamat.no_hp_penerima', 'alamat.alamat_lengkap', 'alamat.alamat_utama',
-            'kota.nama_provinsi', 'kota.tipe', 'kota.nama_kota', 'kota.postal_code'
+            'kota.nama_provinsi', 'kota.tipe', 'kota.nama_kota', 'kota.postal_code', 'kota.kota_id_provinsi', 'kota.id_kota'
         ])->join('kota', 'alamat.alamat_id_kota', '=', 'kota.id_kota')->where('alamat_id_akun', $id_user)->get();
     }
 
@@ -78,6 +78,19 @@ class AddressModel extends Model {
     }
 
     /**
+     * Fungsi menghapus alamat
+     * @param  int $id_user
+     * @param  int $id_alamat
+     * @return int mengembalikan banyaknya row yang terhapus
+     */
+    public function deleteAddress($id_user, $id_alamat) {
+        return AddressModel::where([
+           'alamat_id_akun' => $id_user,
+           'id_alamat' => $id_alamat
+        ])->delete();
+    }
+
+    /**
      * Fungsi untuk menyimpan alamat baru ke dalam database
      * @param  int $id_user
      * @param  int $id_kota
@@ -90,6 +103,30 @@ class AddressModel extends Model {
     public function insertAddress($id_user, $id_kota, $nama_alamat, $nama_penerima, $no_hp_penerima, $alamat_lengkap) {
         return AddressModel::insert([
             'alamat_id_akun'      => $id_user,
+            'alamat_id_kota'      => $id_kota,
+            'nama_alamat'         => $nama_alamat,
+            'nama_penerima'       => $nama_penerima,
+            'no_hp_penerima'      => $no_hp_penerima,
+            'alamat_lengkap'      => $alamat_lengkap
+        ]);
+    }
+
+    /**
+     * Fungsi untuk update alamat
+     * @param  int $id_user
+     * @param  int $id_alamat
+     * @param  int $id_kota
+     * @param  string $nama_alamat
+     * @param  string $nama_penerima
+     * @param  string $no_hp_penerima
+     * @param  string $alamat_lengkap
+     * @return int mengembalikan banyaknya row yang terupdate
+     */
+    public function updateAddress($id_user, $id_alamat, $id_kota, $nama_alamat, $nama_penerima, $no_hp_penerima, $alamat_lengkap) {
+        return AddressModel::where([
+            'alamat_id_akun'      => $id_user,
+            'id_alamat'           => $id_alamat
+        ])->update([
             'alamat_id_kota'      => $id_kota,
             'nama_alamat'         => $nama_alamat,
             'nama_penerima'       => $nama_penerima,

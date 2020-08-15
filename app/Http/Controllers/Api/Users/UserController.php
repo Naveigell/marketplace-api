@@ -46,7 +46,10 @@ class UserController extends Controller {
                        "time" => date("H:i"),
                        "date" => date("m-d-Y")
                     ],
-                    "id" => $user->id_akun
+                    "id"        => $user->id_akun,
+                    "toko"      => [
+                        "id"    => $user->id_toko
+                    ]
                 ]
             ];
 
@@ -59,9 +62,9 @@ class UserController extends Controller {
                ],
                "expired" => "+10 Tahun"
             ]]);
+            // return json($data);
         }
-        else {
-            return error(null, ["password" => ["Password salah"]], 422);
-        }
+
+        return error422(null, "password", "Password salah");
     }
 }

@@ -14,7 +14,7 @@ class UserModel extends Model {
      * @return array
      */
     public function getUserByEmail($email) {
-        return UserModel::select(['id_akun', 'email', 'password'])->where(['email' => $email])->get();
+        return UserModel::select(['id_akun', 'email', 'password', 'toko.id_toko'])->join('toko', 'toko.toko_id_akun', '=', 'id_akun')->where(['email' => $email])->get();
     }
 
 }

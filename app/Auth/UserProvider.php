@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 
 use App\Helper\JWT;
 
-class User extends Authenticatable
+class UserProvider extends Authenticatable
 {
     use Notifiable;
 

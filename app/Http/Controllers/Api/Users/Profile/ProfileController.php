@@ -22,6 +22,10 @@ use Carbon\Carbon;
 
 class ProfileController extends Controller {
 
+    /**
+     * Attribute untuk menyimpan tanggal maksimal dari bulan
+     * @var array
+     */
     private $monthMaximumDate = [
         "1"   => 31,      // januari
         "2"   => 28,      // februari
@@ -37,6 +41,10 @@ class ProfileController extends Controller {
         "12"  => 31       // desember
     ];
 
+    /**
+     * Attribute untuk menyimpan bulan sesuai urutannya
+     * @var array
+     */
     private $month = [
         "1" => "Januari",
         "2" => "Februari",
@@ -80,7 +88,7 @@ class ProfileController extends Controller {
     }
 
     /**
-     * FUngsi untuk update gender user
+     * Fungsi untuk update gender user
      * @param  GenderRequestUpdate $request
      * @return json
      */
@@ -102,6 +110,11 @@ class ProfileController extends Controller {
         return error401();
     }
 
+    /**
+     * Update tanggal lahir
+     * @param  BirthdayRequestUpdate $request
+     * @return json
+     */
     public function updateBirthday(BirthdayRequestUpdate $request) {
         if ($this->user->exists()) {
             $user = $this->user;
@@ -121,13 +134,10 @@ class ProfileController extends Controller {
                         "date"        => date("d-m-Y H:i")
                     ]);
                 }
-
                 return error500(null, null, "Terjadi masalah saat mengubah tanggal lahir");
             }
-
             return error422(null, "date", "Tanggal yang dimasukkan tidak valid, silakan ubah kembali tanggal lahir");
         }
-
         return error401();
     }
 
@@ -163,7 +173,7 @@ class ProfileController extends Controller {
 
             // buat random string untuk image
             // huruf depan adalah id user
-            $name     = $user->id().$this->randomImageString(45, $image->extension());
+            $name     = $user->id().$this->randomImageName(45, $image->extension());
 
             // ambil image terakhir
             $latestImage = $this->imageModel->getLastImage($user->id());
@@ -230,7 +240,7 @@ class ProfileController extends Controller {
      * @param  Image   $image
      * @return string
      */
-    public function randomImageString($count = 30, $extension) {
+    public function randomImageName($count = 30, $extension) {
         return Str::random($count).date("_d_m_Y_H_i_s.").$extension;
     }
 
