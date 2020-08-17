@@ -30,6 +30,20 @@ class ProductModel extends Model {
     }
 
     /**
+     * Menghapus barang sementara
+     * @param  int $id_user
+     * @param  int $id_product 
+     * @return int mengembalikan banyaknya row yang di update
+     */
+    public function softDeleteProduct($id_user, $id_product) {
+        return ProductModel::join('toko', 'toko.id_toko', '=', 'barang.barang_id_toko')
+                            ->where([
+                               'toko.toko_id_akun' => $id_user,
+                               'barang.id_barang' => $id_product
+                            ])->update(['barang.barang_aktif' => -1]);
+    }
+
+    /**
      * Ambil image berdasarkan id user dan barang
      * @param  int $id_user
      * @param  int $id_barang
@@ -46,7 +60,7 @@ class ProductModel extends Model {
 
     /**
      * Update product
-     * @param  int $id_user               
+     * @param  int $id_user
      * @param  int $id_product
      * @param  int $id_shop
      * @param  string $product_name
@@ -132,10 +146,17 @@ class ProductModel extends Model {
         ]);
     }
 
+    /**
+     * Ambil produk berdasarkan id
+     * @param  int $id_product
+     * @param  int $id_toko
+     * @return array
+     */
     public function getProductById($id_product, $id_toko) {
         return ProductModel::join('foto_barang', 'foto_barang.foto_barang_id_barang', '=', 'barang.id_barang')->where([
             'id_barang'         => $id_product,
-            'barang_id_toko'    => $id_toko
+            'barang_id_toko'    => $id_toko,
+            'barang_aktif'      => 1
         ])->get();
     }
 

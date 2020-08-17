@@ -103,6 +103,31 @@ class ProductController extends Controller {
     }
 
     /**
+     * Fungsi untuk menghapus sementara produk
+     * @param  Request $request 
+     * @return json
+     */
+    public function softDeleteProduct(Request $request) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+
+            try {
+                $row = $this->productModel->softDeleteProduct($user->id(), $request->id_barang);
+
+                $response = [
+                    "message"     => $row > 0 ? "Produk berhasil dihapus" : "Tidak ada produk yang dihapus",
+                    "date"        => date("d-m-Y H:i")
+                ];
+                return json($response);
+            } catch (\Exception $e) {}
+
+            return error500(null, "product", "Terjadi masalah saat menghapus barang");
+        }
+
+        return error401();
+    }
+
+    /**
      * Fungsi untuk mengupdate barang seller
      * @param  App\Http\Requests\Seller\Shop\Product\Crud\ProductRequestUpdate $request
      * @return json
@@ -355,9 +380,9 @@ class ProductController extends Controller {
         if ($this->user->exists()) {
             $user = $this->user;
 
-            $row = $this->productModel->unarchiveProduct($user->id(), $request->id_barang);
-
             try {
+                $row = $this->productModel->unarchiveProduct($user->id(), $request->id_barang);
+
                 $response = [
                     "message"     => $row <= 0 ? "Tidak produk yang diaktifkan" : "Produk berhasil diaktifkan kembali",
                     "date"        => date("d-m-Y H:i")
@@ -381,9 +406,9 @@ class ProductController extends Controller {
         if ($this->user->exists()) {
             $user = $this->user;
 
-            $row = $this->productModel->archiveProduct($user->id(), $request->id_barang);
-
             try {
+                $row = $this->productModel->archiveProduct($user->id(), $request->id_barang);
+
                 $response = [
                     "message"     => $row <= 0 ? "Tidak produk yang diarsipkan" : "Produk berhasil diarsipkan",
                     "date"        => date("d-m-Y H:i")

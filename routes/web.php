@@ -43,6 +43,7 @@ Route::group(['prefix' => 'api/v1'], function(){
 
     // my shop -- all product
     Route::get('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@getProduct'); // ambil semua barang
+    Route::delete('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@softDeleteProduct'); // soft delete product
     Route::get('/dashboard/shop/product/{id}', 'Api\Seller\Shop\Product\ProductController@getProductById'); // ambil barang berdasarkan id
     Route::post('/dashboard/shop/product/{id}', 'Api\Seller\Shop\Product\ProductController@updateProduct'); // update barang berdasarkan id
     Route::put('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@insertProduct'); // tambah barang baru
