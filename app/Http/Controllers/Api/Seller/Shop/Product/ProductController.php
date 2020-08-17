@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use Config;
+
 use App\Models\Seller\Product\ProductModel;
 
 use App\Http\Requests\Seller\Shop\Product\ProductArchiveRequestUpdate;
 use App\Http\Requests\Seller\Shop\Product\ProductUnarchiveRequestUpdate;
 
 use App\Http\Requests\Seller\Shop\Product\Crud\ProductRequestInsert;
+use App\Http\Requests\Seller\Shop\Product\Crud\ProductRequestUpdate;
 
 class ProductController extends Controller {
 
@@ -53,7 +56,7 @@ class ProductController extends Controller {
     }
 
     /**
-     * Ambil product pada halaman ke - {$page}
+     * Ambil product pada halaman ke - n
      * @param  int $page
      * @return json
      */
@@ -94,6 +97,146 @@ class ProductController extends Controller {
             ];
 
             return json($response);
+        }
+
+        return error401();
+    }
+
+    /**
+     * Fungsi untuk mengupdate barang seller
+     * @param  App\Http\Requests\Seller\Shop\Product\Crud\ProductRequestUpdate $request
+     * @return json
+     */
+    public function updateProduct(ProductRequestUpdate $request, $id) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+
+            // untuk temporary
+            $latestImages           = $this->productModel->getProdutImages($user->id(), $id);
+            $latestImageCollections = collect($latestImages)->map(function($array){
+                return $array->foto_url;
+            });
+
+            if ($request->product_stock < $request->product_minimum_order) {
+                return error422(null, "product_stock", "Stok produk pertama tidak boleh kurang dari pesanan minimum");
+            }
+
+            if ($request->product_discount > $request->product_price) {
+                return error422(null, "product_discount", "Diskon tidak boleh lebih dari harga asli");
+            }
+
+            $productName              = $request->product_name;
+            $productDescription       = $request->product_description;
+            $productImages            = $request->file('product_images');
+            $productPrice             = $request->product_price;
+            $productDiscount          = $request->product_discount;
+            $productStock             = $request->product_stock;
+            $productWeight            = $request->product_weight;
+            $productCondition         = $request->product_condition;
+            $productMinimumOrder      = $request->product_minimum_order;
+            $productInsurance         = $request->product_insurance;
+            $productPreOrder          = $request->product_preorder;
+            $productSizeLong          = $request->product_size_long;
+            $productSizeWide          = $request->product_size_wide;
+            $productSizeHeight        = $request->product_size_height;
+
+            $newImageCollections = $this->handleUploadedImage($productImages);
+            if (!$newImageCollections) {
+                return error500(null, "product_images", "Terjadi masalah saat menyimpan foto produk");
+            }
+
+            $updated = $this->productModel->updateProduct(
+                $user->id(),
+                $id,
+                $user->toko()->id(),
+                $productName,
+                $productDescription,
+                (object) $latestImageCollections,
+                (object) $newImageCollections,
+                $productPrice,
+                $productDiscount,
+                $productStock,
+                $productWeight,
+                $productCondition,
+                $productMinimumOrder,
+                $productInsurance,
+                $productPreOrder,
+                $productSizeLong,
+                $productSizeWide,
+                $productSizeHeight
+            );
+
+            if ($updated) {
+                $this->deleteProductImages((object) $latestImageCollections);
+
+                return json([
+                    "message"     => "Edit produk berhasil",
+                    "date"        => date("d-m-Y H:i")
+                ]);
+            }
+
+            return error500(null, "product", "Terjadi masalah saat mengupdate product");
+        }
+
+        return error401();
+    }
+
+    /**
+     * Fungsi untuk mendelete image di assets
+     * @param  object $images
+     * @return void
+     */
+    public function deleteProductImages(object $images) {
+        foreach ($images as $image) {
+            $path = public_path("/assets/images/products/$image");
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+    }
+
+    /**
+     * Ambil barang berdasarkan id
+     * @param  int $id
+     * @return json
+     */
+    public function getProductById($id) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+
+            $products = $this->productModel->getProductById($id, $user->toko()->id());
+
+            if (count($products) > 0) {
+                $barang = new \stdClass;
+                $toko = new \stdClass;
+
+                $barang->id_barang                  = $products[0]->id_barang;
+                $barang->nama_barang                = $products[0]->nama_barang;
+                $barang->slug                       = $products[0]->slug;
+                $barang->deskripsi                  = $products[0]->informasi_barang;
+                $barang->costs                      = new \stdClass;
+                $barang->costs->harga               = $products[0]->harga;
+                $barang->costs->diskon              = $products[0]->diskon;
+                $barang->stok_barang                = $products[0]->stok_barang;
+                $barang->berat_barang               = $products[0]->berat_barang;
+                $barang->kondisi                    = $products[0]->kondisi;
+                $barang->pesanan_minimum            = $products[0]->pesanan_minimum;
+                $barang->size                       = new \stdClass;
+                $barang->size->lebar_barang         = $products[0]->lebar_barang;
+                $barang->size->panjang_barang       = $products[0]->panjang_barang;
+                $barang->size->tinggi_barang        = $products[0]->tinggi_barang;
+                $barang->foto_url                   = [config('app.assets_url_images_barang')."/".$products[0]->foto_url];
+
+                if (count($products) > 1) {
+                    for ($i = 1; $i < count($products); $i++) {
+                        array_push($barang->foto_url, config('app.assets_url_images_barang')."/".$products[$i]->foto_url);
+                    }
+                }
+
+                return json([$barang->slug => $barang]);
+            }
+
+            return error404(null, 'barang', 'Barang yang dicari tidak ditemukan');
         }
 
         return error401();

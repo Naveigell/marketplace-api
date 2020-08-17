@@ -66,6 +66,13 @@ function error401($errors = null, $errorKey = null, $errorValue = null, $details
     return error($details, $errors, 401);
 }
 
+function error404($errors = null, $errorKey = null, $errorValue = null, $details = null){
+
+    $errors[$errorKey == null ? "halaman" : $errorKey] = [$errorValue == null ? "Halaman tidak ditemukan" : $errorValue];
+
+    return error($details, $errors, 404);
+}
+
 function error422($errors = null, $errorKey = null, $errorValue = null, $details = null) {
 
     $errors[$errorKey == null ? "input" : $errorKey] = [$errorValue == null ? "Input yang anda masukkan tidak tepat" : $errorValue];

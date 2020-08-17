@@ -10,6 +10,8 @@ use App\Models\Seller\Product\ProductModel;
 
 class ProductModel extends Model {
     protected $table = 'barang';
+    protected $fillable = ['nama_barang', 'informasi_barang', 'harga', 'diskon', 'stok_barang', 'berat_barang', 'kondisi', 'pesanan_minimum', 'asuransi', 'preorder', 'lebar_barang', 'panjang_barang', 'tinggi_barang', 'updated_at'];
+    public $timestamps = false;
 
     /**
      * Ambil semua product berdasarkan id
@@ -25,6 +27,79 @@ class ProductModel extends Model {
              'toko.toko_id_akun' => $id_user,
              'barang.barang_aktif' => 1
           ])->get();
+    }
+
+    /**
+     * Ambil image berdasarkan id user dan barang
+     * @param  int $id_user
+     * @param  int $id_barang
+     * @return array
+     */
+    public function getProdutImages($id_user, $id_barang) {
+        return ProductModel::select(['foto_url'])->join('toko', 'toko.toko_id_akun', '=', 'barang.barang_id_toko')
+                                                 ->join('foto_barang', 'foto_barang.foto_barang_id_barang', '=', 'barang.id_barang')
+                                                 ->where([
+                                                    'toko.toko_id_akun'     => $id_user,
+                                                    'barang.id_barang'      => $id_barang
+                                                 ])->get();
+    }
+
+    /**
+     * Update product
+     * @param  int $id_user               
+     * @param  int $id_product
+     * @param  int $id_shop
+     * @param  string $product_name
+     * @param  string $product_description
+     * @param  object $last_product_images
+     * @param  object $new_product_images
+     * @param  int $product_price
+     * @param  int|null $product_discount
+     * @param  int $product_stock
+     * @param  int $product_weight
+     * @param  int $product_condition
+     * @param  int $product_minimum_order
+     * @param  int $product_insurance
+     * @param  int $product_preorder
+     * @param  int $product_size_long
+     * @param  int $product_size_wide
+     * @param  int $product_size_height
+     * @return boolean
+     */
+    public function updateProduct($id_user, $id_product, $id_shop, $product_name, $product_description, object $last_product_images, object $new_product_images, $product_price,
+                                  $product_discount, $product_stock, $product_weight, $product_condition, $product_minimum_order,
+                                  $product_insurance, $product_preorder, $product_size_long, $product_size_wide,
+                                  $product_size_height) {
+
+        $product = ProductModel::join('toko', 'toko.id_toko', '=', 'barang.barang_id_toko')->where(['toko.toko_id_akun' => $id_user, 'barang.barang_id_toko' => $id_shop, 'barang.id_barang' => $id_product])->first();
+        $productUpdatedRow = $product->query()->where('barang.id_barang', $product->id_barang)->update([
+             'barang.nama_barang'           => $product_name,
+             'barang.informasi_barang'      => $product_description,
+             'barang.harga'                 => $product_price,
+             'barang.diskon'                => $product_discount,
+             'barang.stok_barang'           => $product_stock,
+             'barang.berat_barang'          => $product_weight,
+             'barang.kondisi'               => $product_condition == 1 ? 'Bekas' : 'Baru',
+             'barang.pesanan_minimum'       => $product_minimum_order,
+             'barang.asuransi'              => $product_insurance == 1 ? 'Optional' : 'Ya',
+             'barang.preorder'              => $product_preorder,
+             'barang.lebar_barang'          => $product_size_wide,
+             'barang.panjang_barang'        => $product_size_long,
+             'barang.tinggi_barang'         => $product_size_height,
+             'barang.updated_at'            => date('Y-m-d H:i:s')
+        ]);
+
+        // generate array baru dari image yang baru
+        $images = collect($new_product_images)->map(function($name) use($product) {
+            return ['foto_barang_id_barang' => $product->id_barang, 'foto_url' => $name];
+        })->all();
+
+        // insert image yang baru ke db
+        $insertedRow = DB::table('foto_barang')->insert($images);
+        // lalu kemudian hapus yang lama
+        $deletedRow = DB::table('foto_barang')->where('foto_barang_id_barang', $product->id_barang)->whereIn('foto_url', $last_product_images)->delete();
+
+        return $productUpdatedRow > 0 && $insertedRow > 0 && $deletedRow > 0;
     }
 
     /**
@@ -55,6 +130,13 @@ class ProductModel extends Model {
         ])->update([
             'barang.barang_aktif'   => 1
         ]);
+    }
+
+    public function getProductById($id_product, $id_toko) {
+        return ProductModel::join('foto_barang', 'foto_barang.foto_barang_id_barang', '=', 'barang.id_barang')->where([
+            'id_barang'         => $id_product,
+            'barang_id_toko'    => $id_toko
+        ])->get();
     }
 
     /**

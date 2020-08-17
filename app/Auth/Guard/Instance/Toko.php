@@ -22,7 +22,7 @@ class Toko {
      * @return int
      */
     public function id() {
-        return $this->toko->id;
+        return optional($this->toko)->id;
     }
 }
 

@@ -42,9 +42,11 @@ Route::group(['prefix' => 'api/v1'], function(){
     Route::get('/province/{id}/city', 'Api\Buyer\Location\LocationController@getCityByProvinceId');
 
     // my shop -- all product
-    Route::get('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@getProduct');
-    Route::put('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@insertProduct');
-    Route::get('/dashboard/shop/product/{page}', 'Api\Seller\Shop\Product\ProductController@getProductAtPage')->name('shop-product-pagination');
+    Route::get('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@getProduct'); // ambil semua barang
+    Route::get('/dashboard/shop/product/{id}', 'Api\Seller\Shop\Product\ProductController@getProductById'); // ambil barang berdasarkan id
+    Route::post('/dashboard/shop/product/{id}', 'Api\Seller\Shop\Product\ProductController@updateProduct'); // update barang berdasarkan id
+    Route::put('/dashboard/shop/product', 'Api\Seller\Shop\Product\ProductController@insertProduct'); // tambah barang baru
+    Route::get('/dashboard/shop/product/page/{page}', 'Api\Seller\Shop\Product\ProductController@getProductAtPage')->name('shop-product-pagination'); // ambil barang sesuai halaman
     // my shop -- archive product
     Route::post('/dashboard/shop/product/archive', 'Api\Seller\Shop\Product\ProductController@archiveProduct');
     Route::post('/dashboard/shop/product/unarchive', 'Api\Seller\Shop\Product\ProductController@unarchiveProduct');
