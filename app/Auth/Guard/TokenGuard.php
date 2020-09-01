@@ -71,8 +71,10 @@ class TokenGuard implements Guard {
     public function decodeToken($name){
         $this->token = $this->request->bearerToken() == null ? $this->getCookie($name) : $this->request->bearerToken();
         $this->userInstance = $this->token == null ? null : [JWT::decode($this->token)];
-        $toko = optional($this->userInstance[0]->user)->toko;
-        $this->toko = new Toko($toko);
+        if ($this->userInstance != null) {
+            $toko = $this->userInstance[0]->user->toko;
+            $this->toko = new Toko($toko);
+        }
 
         return $this;
     }

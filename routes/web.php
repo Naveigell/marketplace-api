@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::view('/', 'welcome', ['user' => auth("user")->decodeToken("name")]);
+
+Route::get('/a', 'Api\Buyer\Payment\PaymentController@clientPending');
+Route::get('/logout', 'Api\Users\UserController@logout');
+
 Route::group(['prefix' => 'api/v1'], function(){
 
     // feed
@@ -57,4 +62,16 @@ Route::group(['prefix' => 'api/v1'], function(){
     Route::post('/cart/toggle/active', 'Api\Buyer\Cart\CartController@toggle');
     Route::put('/cart', 'Api\Buyer\Cart\CartController@update');
     Route::delete('/cart', 'Api\Buyer\Cart\CartController@delete');
+
+    // seller
+    Route::get('/seller/order', 'Api\Seller\Shop\Order\OrderController@getAllOrders');
+    Route::post('/seller/order/cancel', 'Api\Seller\Shop\Order\OrderController@cancelOrder');
+
+    // payment
+    Route::get('/payment', 'Api\Buyer\Payment\PaymentController@getPayment');
+    Route::post('/payment/cancel', 'Api\Buyer\Payment\PaymentController@cancelPayment');
+    Route::post('/payment/refund', 'Api\Buyer\Payment\PaymentController@refundPayment');
+
+    Route::post('/services/payment', 'Api\Buyer\Payment\PaymentController@pay');
+    Route::post('/services/payment/notification', 'Api\Buyer\Payment\PaymentController@notificationHandling');
 });

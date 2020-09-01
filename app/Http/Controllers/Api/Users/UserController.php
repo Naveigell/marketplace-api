@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Users;
 use App\Http\Controllers\Controller;
 use App\Models\Users\UserModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use App\Helper\JWT;
 
 class UserController extends Controller {
@@ -24,6 +25,31 @@ class UserController extends Controller {
     public function __construct(){
         $this->user = auth('user')->decodeToken('name');
         $this->userModel = new UserModel;
+    }
+
+    /**
+     * Logout untuk user
+     * @return json
+     */
+    public function logout() {
+        if ($this->user->exists()) {
+
+            // user diasumsikan login melalui web
+            // jika cookie tidak null
+            $isUserLoginOnWeb = Cookie::get('name') != null;
+
+            Cookie::queue(Cookie::forget('name'));
+
+            if ($isUserLoginOnWeb) {
+                return redirect()->back()->with('message', 'Berhasil logout');
+            }
+
+            return json([
+                'message'   => 'User berhasil logout',
+                'date'      => now()
+            ]);
+        }
+        return error401();
     }
 
     /**
@@ -53,16 +79,19 @@ class UserController extends Controller {
                 ]
             ];
 
+            $jwt = JWT::encode($data);
+
+            Cookie::queue('name', $jwt, 1 * 60 * 24 * 30 * 365 * 10);
+
             return json(["auth" => [
                "message" => "Login berhasil",
-               "token" => JWT::encode($data),
+               "token" => $jwt,
                "login_date" => [
                   "time" => date("H:i"),
                   "date" => date("d-m-Y")
                ],
                "expired" => "+10 Tahun"
             ]]);
-            // return json($data);
         }
 
         return error422(null, "password", "Password salah");
