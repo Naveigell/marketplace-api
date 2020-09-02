@@ -4,9 +4,10 @@ namespace App\Helper;
 
 class JWT {
 
-    public static $secret = 'best-secret-key-is-more-than-26-character';
-
     public static function decode($jwt, $key = null, $verify = true) {
+
+        $secret = config('services.jwt.secret');
+
         $tks = explode('.', $jwt);
         if (count($tks) != 3) {
             throw new UnexpectedValueException('Wrong number of segments');
@@ -23,7 +24,7 @@ class JWT {
             if (empty($header->alg)) {
                 throw new DomainException('Empty algorithm');
             }
-            if ($sig != JWT::sign("$headb64.$bodyb64", $key == null ? JWT::$secret : $key, $header->alg)) {
+            if ($sig != JWT::sign("$headb64.$bodyb64", $key == null ? $secret : $key, $header->alg)) {
                 throw new UnexpectedValueException('Signature verification failed');
             }
         }
@@ -32,13 +33,14 @@ class JWT {
 
     public static function encode($payload, $key = null, $algo = 'HS256') {
     		$header = array('typ' => 'JWT', 'alg' => $algo);
+        $secret = config('services.jwt.secret');
 
     		$segments = array();
     		$segments[] = JWT::urlsafeB64Encode(JWT::jsonEncode($header));
     		$segments[] = JWT::urlsafeB64Encode(JWT::jsonEncode($payload));
     		$signing_input = implode('.', $segments);
 
-    		$signature = JWT::sign($signing_input, $key == null ? JWT::$secret : $key, $algo);
+    		$signature = JWT::sign($signing_input, $key == null ? $secret : $key, $algo);
     		$segments[] = JWT::urlsafeB64Encode($signature);
 
     		return implode('.', $segments);

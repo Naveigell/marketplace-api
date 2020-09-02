@@ -86,6 +86,9 @@ class PaymentModel extends Model {
 
              ((SELECT SUM(harga_barang * quantity) AS total_price_back FROM  order_
                                                                        WHERE order_id_order = '$order_id' AND
+                                                                             cancel_by = 0 AND
+                                                                             has_sent = 0 AND
+                                                                             has_received = 0 AND
                                                                              transaction_status = 'settlement') AS orders)
 
              SET
@@ -95,6 +98,9 @@ class PaymentModel extends Model {
              epay.saldo = epay.saldo + orders.total_price_back
 
              WHERE payment.order_id = '$order_id'
+             AND order_.cancel_by = 0
+             AND order_.has_sent = 0
+             AND order_.has_received = 0
              AND payment.payment_id_akun = '$id_user'
              AND payment.transaction_status = 'settlement'"));
 

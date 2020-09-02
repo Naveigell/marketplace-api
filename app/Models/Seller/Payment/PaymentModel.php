@@ -27,7 +27,7 @@ class PaymentModel extends Model {
 
              --
              -- AMBIL TOTAL COUNT DAN SUM DENGAN CASE JIKA ID ORDER SAMA DENGAN PARAMETER
-             -- JIKA SAMA, TAMBAHKAN SESUAI HARGA BARANG DIKALIKAN QUANTITY 
+             -- JIKA SAMA, TAMBAHKAN SESUAI HARGA BARANG DIKALIKAN QUANTITY
              --
 
              ((SELECT
@@ -36,6 +36,9 @@ class PaymentModel extends Model {
                         THEN harga_barang * quantity
                         ELSE 0 END) AS total_price_back FROM order_
                                                         WHERE order_id_order = '$order_id' AND
+                                                              cancel_by = 0 AND
+                                                              has_sent = 0 AND
+                                                              has_received = 0 AND
                                                               transaction_status = 'settlement') AS orders)
 
              SET
@@ -47,6 +50,9 @@ class PaymentModel extends Model {
              WHERE order_.id_order = '$id_order'
              AND order_.order_id_order = '$order_id'
              AND order_.order_id_toko = '$id_toko'
+             AND order_.cancel_by = 0
+             AND order_.has_sent = 0
+             AND order_.has_received = 0
              AND order_.transaction_status = 'settlement'"));
 
         return $row;

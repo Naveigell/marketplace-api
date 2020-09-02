@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Http\Requests\Seller\Shop\Order\CancelOrderRequestUpdate;
+use App\Http\Requests\Seller\Shop\Order\SendOrderRequestUpdate;
 
 use App\Models\Seller\Payment\PaymentController;
 
@@ -93,6 +94,33 @@ class OrderController extends Controller {
     }
 
     /**
+     * Kirim order kepada buyer
+     * @param  SendOrderRequestUpdate $request
+     * @return json
+     */
+    public function sendOrder(SendOrderRequestUpdate $request) {
+        if ($this->user->exists()) {
+            $user = $this->user;
+            $toko = $user->toko();
+
+            $id_order = $request->input('id_order');
+            $order_id = $request->input('order_id');
+
+            $row = $this->orderModel->sendOrder($toko->id(), $id_order, $order_id);
+
+            if ($row > 0) {
+                return json([
+                    "message"     => "Order berhasil dikirim",
+                    "date"        => date("d-m-Y H:i")
+                ]);
+            }
+
+            return error500(null, "order", "Order gagal dikirim");
+        }
+        return error401();
+    }
+
+    /**
      * Cancel order yang diterima dari buyer
      * @param  App\Http\Requests\Seller\Shop\Order\CancelOrderRequestUpdate $request
      * @return json
@@ -102,10 +130,16 @@ class OrderController extends Controller {
             $user = $this->user;
             $toko = $user->toko();
 
-            // FIXME: MENGUBAH 1 ORDER TETAPI EPAY BERTAMBAH SEJUMLAH GROSS AMOUNT
             $row = $this->paymentModel->cancelAndRefundBuyerOrder($request->id_order, $toko->id(), $request->order_id, 'refund');
 
-            return json($row);
+            if ($row > 0) {
+                return json([
+                    "message"     => "Order berhasil dibatalkan",
+                    "date"        => date("d-m-Y H:i")
+                ]);
+            }
+
+            return error500(null, "order", "Pembatalan orderan gagal");
         }
         return error401();
     }

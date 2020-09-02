@@ -38,6 +38,30 @@ class OrderModel extends Model {
     }
 
     /**
+     * Fungsi untuk mengubah received dalam database yang artinya
+     * buyer sudah menerima orderan
+     * @param  int $id_user
+     * @param  int $id_order
+     * @param  string $order_id
+     * @return int
+     */
+    public function receiveOrder($id_user, $id_order, $order_id) {
+        return DB::table('epay')->join('akun', 'akun.id_akun', '=', 'epay.epay_id_akun')
+                                ->join('toko', 'toko.toko_id_akun', '=', 'akun.id_akun')
+                                ->join('order_', 'order_.order_id_toko', '=', 'toko.id_toko')
+                                ->where([
+                                    'order_.id_order'           => $id_order,
+                                    'order_.order_id_order'     => $order_id,
+                                    'order_.order_id_buyer'     => $id_user,
+                                    'order_.has_sent'           => 1,
+                                    'order_.transaction_status' => 'settlement'
+                                ])->update([
+                                    'order_.has_received'       => 1,
+                                    'epay.saldo'                => DB::raw('epay.saldo + (order_.harga_barang * order_.quantity)')
+                                ]);
+    }
+
+    /**
      * Insert order ketika transaksi status dibuat
      * @param  int $id_user
      * @param  string $order_id

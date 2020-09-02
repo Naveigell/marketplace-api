@@ -36,6 +36,10 @@ return [
         'isProduction'  => env('MIDTRANS_IS_PRODUCTION', false),
         'isSanitized'   => env('MIDTRANS_IS_SANITIZED', true),
         'is3ds'         => env('MIDTRANS_IS_3DS', true)
+    ],
+
+    'jwt' => [
+        'secret'    => env('JWT_SECRET_KEY')
     ]
 
 ];

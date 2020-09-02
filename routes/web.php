@@ -63,9 +63,13 @@ Route::group(['prefix' => 'api/v1'], function(){
     Route::put('/cart', 'Api\Buyer\Cart\CartController@update');
     Route::delete('/cart', 'Api\Buyer\Cart\CartController@delete');
 
+    // buyer
+    Route::post('/buyer/order/received', 'Api\Buyer\Order\OrderController@receiveOrder');
+
     // seller
     Route::get('/seller/order', 'Api\Seller\Shop\Order\OrderController@getAllOrders');
     Route::post('/seller/order/cancel', 'Api\Seller\Shop\Order\OrderController@cancelOrder');
+    Route::post('/seller/order/send', 'Api\Seller\Shop\Order\OrderController@sendOrder');
 
     // payment
     Route::get('/payment', 'Api\Buyer\Payment\PaymentController@getPayment');

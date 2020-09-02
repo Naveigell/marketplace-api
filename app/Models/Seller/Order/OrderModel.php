@@ -38,4 +38,22 @@ class OrderModel extends Model {
             'transaction_status'  => 'cancel'
         ]);
     }
+
+    /**
+     * Kirim order kepada buyer
+     * @param  int $id_toko
+     * @param  int $id_order
+     * @param  string $order_id
+     * @return int
+     */
+    public function sendOrder($id_toko, $id_order, $order_id) {
+        return OrderModel::where([
+            'id_order'            => $id_order,
+            'order_id_toko'       => $id_toko,
+            'order_id_order'      => $order_id,
+            'transaction_status'  => 'settlement'
+        ])->update([
+            'has_sent'            => 1
+        ]);
+    }
 }
